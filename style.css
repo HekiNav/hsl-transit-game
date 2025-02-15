@@ -200,6 +200,9 @@ button.clicked {
     border-color: #333333;
     width: 100%;
 }
+#searchresults li:hover {
+    background: #f4f4f5;
+}
 .routeheader {
     color: #333333;
     font-weight: 500;

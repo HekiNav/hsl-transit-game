@@ -178,7 +178,30 @@ const routesQuery = `{
     }
   }
 }`
-
+const singleRouteQuery = `{
+  route(id: "ROUTE_ID") {
+    stops {
+      name
+      gtfsId
+      code
+      lat
+      lon
+    }
+    mode
+    type
+    patterns {
+      directionId
+      geometry {
+        lat
+        lon
+      }
+    }
+  }
+}`
+let suggestions = [];
+let stopsOnScreen = [];
+let selectedRoute = "";
+let guessN = 1
 
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -205,6 +228,10 @@ prepareGame().then((stops) => {
 })
 
 const map = L.map('map').setView({ lat: 60.17210770417428, lng: 24.94059562683106 }, 13);
+
+const canvasRenderer = L.canvas({ padding: 0.5, tolerance: 5 });
+
+const routesGroup = L.layerGroup().addTo(map);
 
 L.tileLayer('https://cdn.digitransit.fi/map/v3/hsl-map-en/{z}/{x}/{y}@2x.png?digitransit-subscription-key=754a004ba87c4fdd8506532327e212c0', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -296,13 +323,16 @@ function startGame(stop1, stop2) {
     guessBtn.addEventListener("mousedown", e => guessBtn.classList.add("clicked"))
     guessBtn.addEventListener("mouseup", e => guessBtn.classList.remove("clicked"))
     guessBtn.addEventListener("click", () => {
-
+        guessRoute()
     })
 
     const routeSearcher = document.getElementById("routesearcher");
     routeSearcher.addEventListener("input", function () {
         searchRoutes(this.value)
     })
+
+    stop1Id = stop1.gtfsId
+    stop2Id = stop2.gtfsId
 }
 
 
@@ -483,7 +513,7 @@ async function searchRoutes(text) {
     let resultList = ""
     routes.forEach(route => {
         resultList += `<li>
-   <div class="route-suggestion-container">
+   <div class="route-suggestion-container" id="${route.gtfsId}">
       <span class="route-suggestion-icon"></span>
       <div class="route-suggestion-text-container">
          <p class="routeheader">${route.shortName}</p>
@@ -493,5 +523,114 @@ async function searchRoutes(text) {
 </li>`
     })
 
+    suggestions = routes
+
     searchResults.innerHTML = resultList;
+    const suggestionDivs = document.getElementsByClassName("route-suggestion-container")
+    for(let i = 0; i < suggestionDivs.length; i++) {
+        suggestionDivs[i].addEventListener("click", () => selectRoute(i))
+    }
+}
+
+function selectRoute(num) {
+    const searchResults = document.getElementById("searchresults")
+    const routeSearcher = document.getElementById("routesearcher")
+    selectedRoute = suggestions[num]
+
+    searchResults.innerHTML = "";
+    routeSearcher.value = selectedRoute.shortName
+}
+
+async function guessRoute() {
+    const routeSearcher = document.getElementById("routesearcher")
+    const guessBtn = document.getElementById("guess")
+    let route = ""
+
+    // if route was just typed in and not chosen from the suggestions box
+    if(selectedRoute.shortName != routeSearcher.value){
+        const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
+            "headers": {
+                "Content-Type": "application/graphql",
+            },
+            body: routesQuery.replace("STOP_NAME", routeSearcher.value),
+            method: "POST",
+        })
+        const data = await response.json()
+        const routes = data.data.routes
+        if(routes.length == 0){
+            //tbd if typed route does not exist
+            return 1
+        }
+        route = routes[0]
+    } else {
+        route = selectedRoute
+    }
+
+    guessN += 1
+    guessBtn.innerHTML = `${guessN}/10`
+    routeSearcher.value = ""
+
+    const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
+        "headers": {
+            "Content-Type": "application/graphql",
+        },
+        body: singleRouteQuery.replace("ROUTE_ID", route.gtfsId),
+        method: "POST",
+    })
+    const data = await response.json()
+    const resRoute = data.data.route
+
+    renderPolyline(resRoute.patterns[0].geometry, "blue")
+    if(resRoute.patterns.length != 1) renderPolyline(resRoute.patterns[1].geometry, "blue")
+
+    renderStops(resRoute.stops)
+    resRoute.stops.forEach(stop => {
+        stopsOnScreen.push(stop.gtfsId)
+    })
+}
+
+function renderPolyline(shape, color) {
+    //Draw polyline
+    const polyline = L.polyline(shape, {
+        color: color,
+        dashArray: color == 'gray' ? [2, 3] : null,
+        renderer: canvasRenderer,
+    })
+    polyline.addTo(routesGroup);
+    return polyline
+}
+
+function renderStops(stops) {
+    stops.forEach(stop => {
+        console.log(stop)
+        console.log(stopsOnScreen)
+        console.log(stopsOnScreen.includes(stop.gtfsId))
+        const marker = L.circleMarker([stop.lat, stop.lon],
+            {
+                radius: getStopStyle("radius", stop),
+                color: getStopStyle("color", stop),
+                fillColor: getStopStyle("fillcolor", stop),
+                fillOpacity: 1,
+                renderer: canvasRenderer,
+            }).bindTooltip(`${stop.code} ${stop.name}`)
+        marker.addTo(routesGroup)
+    })
+}
+
+function getStopStyle(type, stop){
+    if(type == "radius") {
+        if(stopsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
+        return 4
+    }
+    if(type == "fillcolor") {
+        if(stop.gtfsId == stop1Id) return "green"
+        if(stop.gtfsId == stop2Id) return "green"
+        if(stopsOnScreen.includes(stop.gtfsId)) return "white"
+        return "blue"
+    }
+    if(type == "color") {
+        if(stop.gtfsId == stop1Id) return "green"
+        if(stop.gtfsId == stop2Id) return "green"
+        return "blue"
+    }
 }
