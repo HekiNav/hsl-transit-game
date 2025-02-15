@@ -43,7 +43,7 @@
     border-radius: 5px;
     padding: 5px;
     background-color: #fff;
-    top: -30em;
+    top: -300em;
     opacity: 0;
     transition: 300ms;
     animation: hide 0.3s;
@@ -93,6 +93,9 @@
     font-size: 15px;
   }
   .e-option:hover {
+    color: #007ac9;
+  }
+  .e-options input:checked +label {
     color: #007ac9;
   }
   

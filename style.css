@@ -94,12 +94,20 @@ p {
 #popupContent{
     background-color: white;
     border-radius: 5px;
-    width: 25rem;
+    width: 30rem;
     height: min-content;
     display: flex;
     align-items: center;
     flex-direction: column;
     padding: 2.5rem;
+}
+#guideC, #modesC{
+    background-color: white;
+    width: 25rem;
+    height: min-content;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 #options {
     width: 23rem;
@@ -236,4 +244,7 @@ button.clicked {
     margin: 0;
     padding: 0;
     border: 0;
+}
+.hidden {
+    display: none !important;
 }
