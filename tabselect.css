@@ -22,7 +22,7 @@
     transition: all .15s ease-in-out;
 }
 .radio-inputs:has(input#modes:checked).radio-inputs::before {
-    transform: translateX(9.40rem);
+    transform: translateX(9.4rem);
 }
 .radio-inputs:has(input#guide:checked).radio-inputs::before {
     transform: translateX(0rem);
@@ -44,6 +44,7 @@
     border-radius: 0.5rem;
     border: none;
     padding: .5rem 0;
+    width: 9rem;
     color: #333;
     transition: all .15s ease-in-out;
   }

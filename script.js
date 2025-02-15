@@ -68,6 +68,10 @@ const gameModes = [
             "neigh-buses": true,
             "route-input-opt": "unchecked"
         }
+    },
+    {
+        name: "Custom",
+        parameters: "custom"
     }
 ]
 const parameters = [
@@ -229,7 +233,6 @@ show()
 initGameModes()
 prepareGame().then((stops) => {
     const [stop1, stop2] = stops
-    console.log(stop1, stop2)
     const startButton = document.getElementById("start")
     startButton.classList.add("active")
     startButton.innerHTML = "<h1>START</h1>"
@@ -424,11 +427,9 @@ function initGameModes() {
                     }
 
                 })
-                console.log(checkbox3)
                 paramContainer.append(checkbox3)
                 break;
             case "checkbox4":
-                console.log("e")
                 const checkbox4 = parseHTML(`
                                 <div class="o-option-${param.type}">
                                     <input id="${param.id}" type="checkbox" class="le-checkbox" disabled/>
@@ -455,7 +456,6 @@ function initGameModes() {
                     } else {
                         input.classList.remove("checked4")
                     }
-                    console.log("f1")
 
                 })
                 paramContainer.append(checkbox4)
@@ -467,12 +467,10 @@ function initGameModes() {
     })
     updateParameters(defaultValues)
     const things = document.querySelectorAll(".e-options > *")
-    console.log(things)
     things.forEach(p => {
         p.addEventListener("click", e => {
             const mode = e.target.parentElement.title
             if (!mode) return
-            console.log(gameModes.find(gm => gm.name == mode))
             updateParameters(gameModes.find(gm => gm.name == mode).parameters)
         })
     })
@@ -481,9 +479,14 @@ function initGameModes() {
 function updateParameters(param) {
     const paramContainer = document.querySelector("#optionsContainer")
     const params = paramContainer.querySelectorAll("input")
+
+    if (param == "custom") {
+        params.forEach(p => p.disabled = false)
+        return
+    }
     params.forEach((p) => {
+        p.disabled = true
         const para = parameters.find(par => par.id == p.id)
-        console.log(p.id, para.type)
         switch (para.type) {
             case "checkbox":
                 p.checked = param[p.id]
@@ -491,13 +494,10 @@ function updateParameters(param) {
             case "checkbox2":
             case "checkbox3":
             case "checkbox4":
-                console.log(p.classList)
                 p.classList.forEach(c => {
-                    console.log(c)
                     if (c == "le-checkbox") return
                     p.classList.remove(c)
                 })
-                console.log(p.classList)
                 if (param[p.id] != "unchecked") p.classList.add(param[p.id])
                 paramContainer.querySelector(`[for=${p.id}]`).innerHTML = para.labels[param[p.id]]
                 break;
