@@ -190,6 +190,18 @@ dropdown.addEventListener("click", e => {
         dropdown.classList.remove("clicked") :
         dropdown.classList.add("clicked")
 })
+const tabSelector1 = document.getElementById("modes")
+tabSelector1.addEventListener("click", e => {
+    document.getElementById("modesC").classList.remove("hidden")
+    document.getElementById("guideC").classList.add("hidden")
+
+})
+const tabSelector2 = document.getElementById("guide")
+tabSelector2.addEventListener("click", e => {
+    document.getElementById("modesC").classList.add("hidden")
+    document.getElementById("guideC").classList.remove("hidden")
+})
+
 show()
 initGameModes()
 prepareGame().then((stops) => {

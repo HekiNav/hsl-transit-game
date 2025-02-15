@@ -43,7 +43,7 @@
     border-radius: 5px;
     padding: 5px;
     background-color: #fff;
-    top: -30em;
+    top: -300em;
     opacity: 0;
     transition: 300ms;
     animation: hide 0.3s;
