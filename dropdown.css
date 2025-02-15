@@ -1,0 +1,126 @@
+/* From Uiverse.io by 3bdel3ziz-T */ 
+.e-select {
+    width: 15rem;
+    cursor: pointer;
+    position: relative;
+    transition: 300ms;
+    color: #333;
+    overflow: hidden;
+    border: 1px #666 solid;
+    height: 2em;
+    overflow: visible;
+    border-radius: 5px;
+  }
+  
+  .e-selected {
+    background-color: #fff;
+    padding: 5px;
+    margin-bottom: 3px;
+    border-radius: 5px;
+    position: relative;
+    z-index: 100000;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .e-arrow {
+    position: relative;
+    right: 0px;
+    height: 1rem;
+    transform: rotate(-90deg);
+    width: 25px;
+    fill: white;
+    z-index: 100000;
+    transition: 300ms;
+  }
+  
+  .e-options {
+    border: 1px #666 solid;
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+    padding: 5px;
+    background-color: #fff;
+    top: -30em;
+    opacity: 0;
+    transition: 300ms;
+    animation: hide 0.3s;
+  }
+  @keyframes show {
+    0%  {
+        top: -5em;
+        opacity: 0;
+    }
+    100% {
+        top: 0.5em;
+        opacity: 1;
+    }
+  }
+  @keyframes hide {
+    0%  {
+        top: 0.5em;
+        opacity: 1;
+    }
+    100% {
+        top: -5em;
+        opacity: 0;
+    }
+  }
+  .e-select * , .e-select{
+    position: relative;
+    z-index: 10003 !important;
+    font-family: "GothamRounded";
+  }
+  
+  .e-select.clicked > .e-options, .e-options.clicked {
+    animation: show 0.3s;
+    opacity: 1;
+    top: 0.5em;
+  }
+  
+  .e-select.clicked > .e-selected .e-arrow {
+    transform: rotate(90deg);
+  }
+  
+  .e-option {
+    border-radius: 5px;
+    padding: 5px;
+    transition: 300ms;
+    background-color: #fff;
+    width: 150px;
+    font-size: 15px;
+  }
+  .e-option:hover {
+    color: #007ac9;
+  }
+  
+  .e-options input[type="radio"] {
+    display: none;
+  }
+  
+  .e-options label {
+    display: inline-block;
+  }
+  .e-options label::before {
+    content: attr(data-txt);
+  }
+  
+  
+  .e-select:has(.e-options input[type="radio"]#option-0:checked) .e-selected::before {
+    content: attr(data-0);
+  }
+  .e-select:has(.e-options input[type="radio"]#option-1:checked) .e-selected::before {
+    content: attr(data-1);
+  }
+  .e-select:has(.e-options input[type="radio"]#option-2:checked) .e-selected::before {
+    content: attr(data-2);
+  }
+  .e-select:has(.e-options input[type="radio"]#option-3:checked) .e-selected::before {
+    content:attr(data-3);
+  }
+  .e-select:has(.e-options input[type="radio"]#option-4:checked) .e-selected::before {
+    content: attr(data-4);
+  }
+  

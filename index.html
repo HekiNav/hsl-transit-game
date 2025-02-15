@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSL Transitle</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="checkbox.css">
+    <link rel="stylesheet" href="dropdown.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <h1>HSL Transitle</h1>
+    </nav>
+    <!--  -->
+    <div id="popup" hidden>
+        <div id="popupContent">
+            <h1 id="popupHeader" style="width: 20rem; height: 3rem;">Welcome to HSL Transitle</h1>
+            <p>This is a <a href="https://travle.earth">Travle</a> inspired transit game about finding the route with
+                the least transfers between two random stops in the HSL region. <br>
+                The game takes a couple of seconds to load everything, and the button below can be used to start the
+                game when everything is loaded.<br>
+            </p>
+            <p>
+                Below you can select from five game modes or create you own configurations. Easy is recommended for learing the game.
+            </p>
+            <p>
+                Your two stops can be seen on the map. The map can be moved and zoomed. On the top left there are 
+                controls for zooming in and out, resetting the pan and zoom to the state at the start of the game. 
+                Then there are the two buttons for zooming in to your destination and origin.
+            </p>
+            <h2>Game modes</h2>
+            <div class="e-select">
+                <div class="e-selected" data-default="Normal" data-one="Easy" data-two="Hard"
+                    data-three="Pain and Suffering" data-four="Torment and Misery" data-three="option-3">
+                    <svg class="e-arrow" width="100%" height="100%" viewBox="0 0 20 36" class="" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <path fill="#007AC9" fill-rule="evenodd"
+                            d="M16.546625,19.906375 L19.453625,17.000375 L19.453625,16.999375 L4.055625,1.601375 C3.252625,0.798375 1.951625,0.798375 1.148625,1.601375 C0.345625,2.404375 0.345625,3.705375 1.148625,4.508375 L13.639625,16.999375 L1.148625,29.490375 C0.345625,30.293375 0.345625,31.594375 1.148625,32.397375 C1.951625,33.200375 3.252625,33.200375 4.055625,32.397375 L16.546625,19.906375 L16.546625,19.906375 Z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="e-options">
+
+                </div>
+            </div>
+            <div id="optionsContainer">
+            </div>
+            <button id="start">
+                <h1>PREPARING </h1><img src="./img/loading.png" alt="loading..." id="loadingIcon">
+            </button>
+        </div>
+    </div>
+    <div class="container">
+        <h1 id="header"><span id="hpt1" style="width: 30rem; height: 1.5em;">Today I'd like to go from </span><span
+                style="width: 30rem; height:1.3em;" id="hpt2">one stop to another</span></h1>
+        <div id="map" style="width: 30rem; height: 25rem;"></div>
+        <div class="inputcontainer">
+            <input type="text" id="routesearcher" placeholder="Search for a line...">
+            <div id="searchresultscontainer">
+                <ul id="searchresults"></ul>
+            </div>
+            <button id="guess">Guess (1/10)</button>
+        </div>
+    </div>
+    <script src="fonts.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="scripts/textFit.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
