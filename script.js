@@ -342,6 +342,7 @@ function initGameModes() {
                 checkbox2.addEventListener("click", e => {
                     e.preventDefault()
                     const input = checkbox2.firstElementChild
+                    if (input.disabled) return
 
                     if (!input.classList.contains("checked1") && !input.classList.contains("checked2")) {
                         input.classList.add("checked1")
@@ -365,6 +366,7 @@ function initGameModes() {
                 checkbox3.addEventListener("click", e => {
                     e.preventDefault()
                     const input = checkbox3.firstElementChild
+                    if (input.disabled) return
 
                     if (!input.classList.contains("checked1") && !input.classList.contains("checked2") && !input.classList.contains("checked3")) {
                         input.classList.add("checked1")
@@ -395,6 +397,7 @@ function initGameModes() {
                 checkbox4.addEventListener("click", e => {
                     e.preventDefault()
                     const input = checkbox4.firstElementChild
+                    if (input.disabled) return
 
                     if (!input.classList.contains("checked1") && !input.classList.contains("checked2") && !input.classList.contains("checked3") && !input.classList.contains("checked4")) {
                         input.classList.add("checked1")

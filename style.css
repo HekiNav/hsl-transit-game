@@ -94,7 +94,7 @@ p {
 #popupContent{
     background-color: white;
     border-radius: 5px;
-    width: 25rem;
+    width: 30rem;
     height: min-content;
     display: flex;
     align-items: center;

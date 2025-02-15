@@ -95,6 +95,9 @@
   .e-option:hover {
     color: #007ac9;
   }
+  .e-options input:checked +label {
+    color: #007ac9;
+  }
   
   .e-options input[type="radio"] {
     display: none;
