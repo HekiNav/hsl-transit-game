@@ -213,7 +213,53 @@ class ParameterManager {
         })
         return params
     }
+    toShort() {
+        const paramContainer = document.querySelector("#optionsContainer")
+        const checkboxes = paramContainer.querySelectorAll("input")
+        let string=""
+        checkboxes.forEach(check => {
+            check.disabled = false
+            switch (check.parentElement.classList[0].split("-")[2]) {
+                case "checkbox":
+                    string += check.checked == true ? 1 : 0
+                    break;
+                case "checkbox2":
+                case "checkbox3":
+                case "checkbox4":
+                    string += check.classList[1] ? check.classList[1].replace("checked","") : 0
+                    break;
+                default:
+                    break;
+            }
+        })
+        return string
+    }
+    static fromShort(str) {
+        let params = {}
+        str.split("\0")[1].split("").forEach((n,i) => {
+            const key = parameters[i].id
+            const type = parameters[i].type
+            switch (type) {
+                case "checkbox":
+                    params[key] = !!Number(n)
+                    break;
+                case "checkbox2":
+                case "checkbox3":
+                case "checkbox4":
+                    params[key] = Number(n) ? "checked"+n : "unchecked"
+                    break;
+                default:
+                    break;
+            }
+        })
+        console.log(params)
+        return {
+            name: str.split("\0")[0],
+            parameters: params
+        }
+    }
 }
+ParameterManager.fromShort(decodeURIComponent("a%00010101112"))
 const stopsQuery = `
 query {
   stops{
@@ -299,8 +345,11 @@ saveC.addEventListener("click", () => {
         name: document.getElementById("Cname").value || "",
         parameters: parameterManager.toJSON()
     }
-    window.location.replace(window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode)))
-    window.location.href = window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode))
+    const gameModeShort = `${document.getElementById("Cname").value || ""}\0${parameterManager.toShort()}`
+    const newURL = window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(gameModeShort)
+    // Both if one doesnt work
+    window.location.replace(newURL)
+    window.location.href = newURL
 })
 
 const parameterManager = new ParameterManager()
@@ -453,11 +502,12 @@ function initGameModes() {
     const urlParam = window.location.href.split("?")[1]
     const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null 
     if (urlParamParsed && urlParamParsed.some(p => p[0] == "gameMode")) {
-        const param = JSON.parse(decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1]))
+        const param = decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1])
         console.log(param)
+        const customMode = ParameterManager.fromShort(param)
         gameModes.push({
-            name: `Custom (${param.name})`,
-            parameters: param.parameters
+            name: `Custom (${customMode.name})`,
+            parameters: customMode.parameters
         })
     }
     gameModes.forEach((mode, i) => {
