@@ -144,6 +144,75 @@ function show() {
 function hide() {
     document.getElementById("popup").style.display = "none"
 }
+function openSavePopup() {
+    document.getElementById("savePopup").style.display = "flex"
+}
+function closeSavePopup() {
+    document.getElementById("savePopup").style.display = "none"
+}
+
+class ParameterManager {
+    constructor() {
+
+    }
+    update(params = null) {
+        let custom = params == "custom"
+        const paramContainer = document.querySelector("#optionsContainer")
+        const checkboxes = paramContainer.querySelectorAll("input")
+        if (custom || !params) {
+            paramContainer.addEventListener("click", e => {
+                this.update()
+            }, { once: true })
+            custom = true
+            params = {}
+
+            checkboxes.forEach(check => {
+                check.disabled = false
+                switch (check.parentElement.classList[0].split("-")[2]) {
+                    case "checkbox":
+                        params[check.id] = check.checked
+                        break;
+                    case "checkbox2":
+                    case "checkbox3":
+                    case "checkbox4":
+                        params[check.id] = check.classList[1] || "unchecked"
+                        break;
+                    default:
+                        break;
+                }
+            })
+        } else {
+            checkboxes.forEach(p => p.disabled = true)
+
+        }
+        Object.keys(params).forEach((p, i) => {
+            this[p] = Object.values(params)[i]
+        })
+        updateParameters(params)
+    }
+    toJSON() {
+        const paramContainer = document.querySelector("#optionsContainer")
+        const checkboxes = paramContainer.querySelectorAll("input")
+        let params = {}
+
+        checkboxes.forEach(check => {
+            check.disabled = false
+            switch (check.parentElement.classList[0].split("-")[2]) {
+                case "checkbox":
+                    params[check.id] = check.checked
+                    break;
+                case "checkbox2":
+                case "checkbox3":
+                case "checkbox4":
+                    params[check.id] = check.classList[1] || "unchecked"
+                    break;
+                default:
+                    break;
+            }
+        })
+        return params
+    }
+}
 const stopsQuery = `
 query {
   stops{
@@ -210,6 +279,28 @@ let guessN = 1
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+
+const saveCustomButton = document.getElementById("saveCustom")
+saveCustomButton.addEventListener("mousedown", e => saveCustomButton.classList.add("clicked"))
+saveCustomButton.addEventListener("mouseup", e => saveCustomButton.classList.remove("clicked"))
+saveCustomButton.addEventListener("click", () => {
+    openSavePopup()
+})
+const saveC = document.getElementById("saveC")
+saveC.addEventListener("mousedown", e => saveC.classList.add("clicked"))
+saveC.addEventListener("mouseup", e => saveC.classList.remove("clicked"))
+saveC.addEventListener("click", () => {
+    closeSavePopup()
+    const gameMode = {
+        name: document.getElementById("Cname").value || "",
+        parameters: parameterManager.toJSON()
+    }
+    window.location.replace(window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode)))
+    window.location.reload()
+})
+
+const parameterManager = new ParameterManager()
+
 const dropdown = document.querySelector(".e-select")
 dropdown.addEventListener("click", e => {
     if (e.target.tagName == "INPUT") return
@@ -356,14 +447,34 @@ function initGameModes() {
     const options = document.querySelector(".e-options")
     const defaultMode = 1
     const defaultValues = gameModes[defaultMode].parameters
+    const urlParam = window.location.href.split("?")[1]
+    const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null 
+    if (urlParamParsed.some(p => p[0] == "gameMode")) {
+        const param = JSON.parse(decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1]))
+        console.log(param)
+        gameModes.push({
+            name: `Custom (${param.name})`,
+            parameters: param.parameters
+        })
+    }
     gameModes.forEach((mode, i) => {
+        console.log(mode)
         selected.setAttribute("data-" + i, mode.name)
+
         options.innerHTML += `
         <div title="${mode.name}">
             <input id="option-${i}" name="option" type="radio" ${i == defaultMode ? "checked" : ""} />
             <label class="e-option" for="option-${i}" data-txt="${mode.name}"></label>
         </div>
         `
+    })
+    document.querySelector(".e-options").addEventListener("click", e => {
+
+        if (document.getElementById("option-5").checked) {
+            document.getElementById("saveCustom").classList.remove("hidden")
+        } else {
+            document.getElementById("saveCustom").classList.add("hidden")
+        }
     })
     const paramContainer = document.querySelector("#optionsContainer")
     parameters.forEach(param => {
@@ -465,13 +576,13 @@ function initGameModes() {
                 break;
         }
     })
-    updateParameters(defaultValues)
+    parameterManager.update(defaultValues)
     const things = document.querySelectorAll(".e-options > *")
     things.forEach(p => {
         p.addEventListener("click", e => {
             const mode = e.target.parentElement.title
             if (!mode) return
-            updateParameters(gameModes.find(gm => gm.name == mode).parameters)
+            parameterManager.update(gameModes.find(gm => gm.name == mode).parameters)
         })
     })
 
@@ -480,12 +591,7 @@ function updateParameters(param) {
     const paramContainer = document.querySelector("#optionsContainer")
     const params = paramContainer.querySelectorAll("input")
 
-    if (param == "custom") {
-        params.forEach(p => p.disabled = false)
-        return
-    }
     params.forEach((p) => {
-        p.disabled = true
         const para = parameters.find(par => par.id == p.id)
         switch (para.type) {
             case "checkbox":
@@ -542,7 +648,7 @@ async function searchRoutes(text) {
 
     searchResults.innerHTML = resultList;
     const suggestionDivs = document.getElementsByClassName("route-suggestion-container")
-    for(let i = 0; i < suggestionDivs.length; i++) {
+    for (let i = 0; i < suggestionDivs.length; i++) {
         suggestionDivs[i].addEventListener("click", () => selectRoute(i))
     }
 }
@@ -562,7 +668,7 @@ async function guessRoute() {
     let route = ""
 
     // if route was just typed in and not chosen from the suggestions box
-    if(selectedRoute.shortName != routeSearcher.value){
+    if (selectedRoute.shortName != routeSearcher.value) {
         const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
             "headers": {
                 "Content-Type": "application/graphql",
@@ -572,7 +678,7 @@ async function guessRoute() {
         })
         const data = await response.json()
         const routes = data.data.routes
-        if(routes.length == 0){
+        if (routes.length == 0) {
             //tbd if typed route does not exist
             return 1
         }
@@ -596,7 +702,7 @@ async function guessRoute() {
     const resRoute = data.data.route
 
     renderPolyline(resRoute.patterns[0].geometry, "blue")
-    if(resRoute.patterns.length != 1) renderPolyline(resRoute.patterns[1].geometry, "blue")
+    if (resRoute.patterns.length != 1) renderPolyline(resRoute.patterns[1].geometry, "blue")
 
     renderStops(resRoute.stops)
     resRoute.stops.forEach(stop => {
@@ -617,9 +723,6 @@ function renderPolyline(shape, color) {
 
 function renderStops(stops) {
     stops.forEach(stop => {
-        console.log(stop)
-        console.log(stopsOnScreen)
-        console.log(stopsOnScreen.includes(stop.gtfsId))
         const marker = L.circleMarker([stop.lat, stop.lon],
             {
                 radius: getStopStyle("radius", stop),
@@ -632,20 +735,20 @@ function renderStops(stops) {
     })
 }
 
-function getStopStyle(type, stop){
-    if(type == "radius") {
-        if(stopsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
+function getStopStyle(type, stop) {
+    if (type == "radius") {
+        if (stopsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
         return 4
     }
-    if(type == "fillcolor") {
-        if(stop.gtfsId == stop1Id) return "green"
-        if(stop.gtfsId == stop2Id) return "green"
-        if(stopsOnScreen.includes(stop.gtfsId)) return "white"
+    if (type == "fillcolor") {
+        if (stop.gtfsId == stop1Id) return "green"
+        if (stop.gtfsId == stop2Id) return "green"
+        if (stopsOnScreen.includes(stop.gtfsId)) return "white"
         return "blue"
     }
-    if(type == "color") {
-        if(stop.gtfsId == stop1Id) return "green"
-        if(stop.gtfsId == stop2Id) return "green"
+    if (type == "color") {
+        if (stop.gtfsId == stop1Id) return "green"
+        if (stop.gtfsId == stop2Id) return "green"
         return "blue"
     }
 }

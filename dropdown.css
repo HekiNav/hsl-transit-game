@@ -45,6 +45,7 @@
     background-color: #fff;
     top: -300em;
     opacity: 0;
+    z-index: 10000;
     transition: 300ms;
     animation: hide 0.3s;
   }
@@ -127,3 +128,9 @@
     content: attr(data-4);
   }
   
+  .e-select:has(.e-options input[type="radio"]#option-5:checked) .e-selected::before {
+    content: attr(data-5);
+  }
+  .e-select:has(.e-options input[type="radio"]#option-6:checked) .e-selected::before {
+    content: attr(data-6);
+  }
