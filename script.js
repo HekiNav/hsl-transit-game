@@ -465,8 +465,12 @@ async function prepareGame() {
                     stop.routes.length :
                     stop.stops.some(s => s.routes.length)
         )
+    console.log(filtered)
+    const [random1] = await filtered.filter(item => item.code == "E1053")
+    const [random2] = await filtered.filter(item => item.code == "H3181")
+    /*
     const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
+    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)*/
     console.log(random1, random2)
     return [random1, random2]
 }
@@ -500,7 +504,8 @@ function initGameModes() {
     const defaultMode = 1
     const defaultValues = gameModes[defaultMode].parameters
     const urlParam = window.location.href.split("?")[1]
-    const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null 
+    const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null
+    if(urlParamParsed == null) return 1
     if (urlParamParsed && urlParamParsed.some(p => p[0] == "gameMode")) {
         const param = decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1])
         console.log(param)
@@ -769,9 +774,9 @@ async function guessRoute() {
   if (resRoute.patterns.length != 1)
     renderPolyline(resRoute.patterns[1].geometry, hslBlue, route.shortName);
 
-  checkWin(resRoute, route.gtfsId)
-
   renderStops(resRoute.stops, route.gtfsId);
+
+  checkWin(resRoute, route.gtfsId)
 }
 
 function checkWin(routeObj, routeid) {
@@ -780,8 +785,8 @@ function checkWin(routeObj, routeid) {
 
   //find all lines that have been connected to this line
   let connectedRoutes = getConnectedRoutes(routeStopIds, routeid);
-  queue = connectedRoutes
-  explored = []
+  queue = [...connectedRoutes];
+  explored = [];
   while(queue.length != 0){
     current = queue.shift()
     connections = getConnectedRoutes(routeStops[current], current)
