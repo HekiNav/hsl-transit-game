@@ -300,7 +300,7 @@ saveC.addEventListener("click", () => {
         parameters: parameterManager.toJSON()
     }
     window.location.replace(window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode)))
-    window.location.reload()
+    window.location.href = window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode))
 })
 
 const parameterManager = new ParameterManager()
@@ -452,7 +452,7 @@ function initGameModes() {
     const defaultValues = gameModes[defaultMode].parameters
     const urlParam = window.location.href.split("?")[1]
     const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null 
-    if (urlParamParsed.some(p => p[0] == "gameMode")) {
+    if (urlParamParsed && urlParamParsed.some(p => p[0] == "gameMode")) {
         const param = JSON.parse(decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1]))
         console.log(param)
         gameModes.push({
