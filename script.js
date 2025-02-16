@@ -466,11 +466,11 @@ async function prepareGame() {
                     stop.stops.some(s => s.routes.length)
         )
     console.log(filtered)
-    const [random1] = await filtered.filter(item => item.code == "E1053")
-    const [random2] = await filtered.filter(item => item.code == "H3181")
-    /*
+    //for testing to always use same stop
+    /*const [random1] = await filtered.filter(item => item.code == "E1053")
+    const [random2] = await filtered.filter(item => item.code == "H3181")*/
     const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)*/
+    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
     console.log(random1, random2)
     return [random1, random2]
 }
