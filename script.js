@@ -68,6 +68,10 @@ const gameModes = [
             "neigh-buses": true,
             "route-input-opt": "unchecked"
         }
+    },
+    {
+        name: "Custom",
+        parameters: "custom"
     }
 ]
 const parameters = [
@@ -141,6 +145,75 @@ function show() {
 function hide() {
     document.getElementById("popup").style.display = "none"
 }
+function openSavePopup() {
+    document.getElementById("savePopup").style.display = "flex"
+}
+function closeSavePopup() {
+    document.getElementById("savePopup").style.display = "none"
+}
+
+class ParameterManager {
+    constructor() {
+
+    }
+    update(params = null) {
+        let custom = params == "custom"
+        const paramContainer = document.querySelector("#optionsContainer")
+        const checkboxes = paramContainer.querySelectorAll("input")
+        if (custom || !params) {
+            paramContainer.addEventListener("click", e => {
+                this.update()
+            }, { once: true })
+            custom = true
+            params = {}
+
+            checkboxes.forEach(check => {
+                check.disabled = false
+                switch (check.parentElement.classList[0].split("-")[2]) {
+                    case "checkbox":
+                        params[check.id] = check.checked
+                        break;
+                    case "checkbox2":
+                    case "checkbox3":
+                    case "checkbox4":
+                        params[check.id] = check.classList[1] || "unchecked"
+                        break;
+                    default:
+                        break;
+                }
+            })
+        } else {
+            checkboxes.forEach(p => p.disabled = true)
+
+        }
+        Object.keys(params).forEach((p, i) => {
+            this[p] = Object.values(params)[i]
+        })
+        updateParameters(params)
+    }
+    toJSON() {
+        const paramContainer = document.querySelector("#optionsContainer")
+        const checkboxes = paramContainer.querySelectorAll("input")
+        let params = {}
+
+        checkboxes.forEach(check => {
+            check.disabled = false
+            switch (check.parentElement.classList[0].split("-")[2]) {
+                case "checkbox":
+                    params[check.id] = check.checked
+                    break;
+                case "checkbox2":
+                case "checkbox3":
+                case "checkbox4":
+                    params[check.id] = check.classList[1] || "unchecked"
+                    break;
+                default:
+                    break;
+            }
+        })
+        return params
+    }
+}
 const stopsQuery = `
 query {
   stops{
@@ -210,6 +283,28 @@ let routeStops = {};
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+
+const saveCustomButton = document.getElementById("saveCustom")
+saveCustomButton.addEventListener("mousedown", e => saveCustomButton.classList.add("clicked"))
+saveCustomButton.addEventListener("mouseup", e => saveCustomButton.classList.remove("clicked"))
+saveCustomButton.addEventListener("click", () => {
+    openSavePopup()
+})
+const saveC = document.getElementById("saveC")
+saveC.addEventListener("mousedown", e => saveC.classList.add("clicked"))
+saveC.addEventListener("mouseup", e => saveC.classList.remove("clicked"))
+saveC.addEventListener("click", () => {
+    closeSavePopup()
+    const gameMode = {
+        name: document.getElementById("Cname").value || "",
+        parameters: parameterManager.toJSON()
+    }
+    window.location.replace(window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(JSON.stringify(gameMode)))
+    window.location.reload()
+})
+
+const parameterManager = new ParameterManager()
+
 const dropdown = document.querySelector(".e-select")
 dropdown.addEventListener("click", e => {
     if (e.target.tagName == "INPUT") return
@@ -233,7 +328,6 @@ show()
 initGameModes()
 prepareGame().then((stops) => {
     const [stop1, stop2] = stops
-    console.log(stop1, stop2)
     const startButton = document.getElementById("start")
     startButton.classList.add("active")
     startButton.innerHTML = "<h1>START</h1>"
@@ -356,14 +450,34 @@ function initGameModes() {
     const options = document.querySelector(".e-options")
     const defaultMode = 1
     const defaultValues = gameModes[defaultMode].parameters
+    const urlParam = window.location.href.split("?")[1]
+    const urlParamParsed = urlParam ? urlParam.split("&").map(p => p.split("=")) : null 
+    if (urlParamParsed.some(p => p[0] == "gameMode")) {
+        const param = JSON.parse(decodeURIComponent(urlParamParsed.find(p => p[0] == "gameMode")[1]))
+        console.log(param)
+        gameModes.push({
+            name: `Custom (${param.name})`,
+            parameters: param.parameters
+        })
+    }
     gameModes.forEach((mode, i) => {
+        console.log(mode)
         selected.setAttribute("data-" + i, mode.name)
+
         options.innerHTML += `
         <div title="${mode.name}">
             <input id="option-${i}" name="option" type="radio" ${i == defaultMode ? "checked" : ""} />
             <label class="e-option" for="option-${i}" data-txt="${mode.name}"></label>
         </div>
         `
+    })
+    document.querySelector(".e-options").addEventListener("click", e => {
+
+        if (document.getElementById("option-5").checked) {
+            document.getElementById("saveCustom").classList.remove("hidden")
+        } else {
+            document.getElementById("saveCustom").classList.add("hidden")
+        }
     })
     const paramContainer = document.querySelector("#optionsContainer")
     parameters.forEach(param => {
@@ -427,11 +541,9 @@ function initGameModes() {
                     }
 
                 })
-                console.log(checkbox3)
                 paramContainer.append(checkbox3)
                 break;
             case "checkbox4":
-                console.log("e")
                 const checkbox4 = parseHTML(`
                                 <div class="o-option-${param.type}">
                                     <input id="${param.id}" type="checkbox" class="le-checkbox" disabled/>
@@ -458,7 +570,6 @@ function initGameModes() {
                     } else {
                         input.classList.remove("checked4")
                     }
-                    console.log("f1")
 
                 })
                 paramContainer.append(checkbox4)
@@ -468,15 +579,13 @@ function initGameModes() {
                 break;
         }
     })
-    updateParameters(defaultValues)
+    parameterManager.update(defaultValues)
     const things = document.querySelectorAll(".e-options > *")
-    console.log(things)
     things.forEach(p => {
         p.addEventListener("click", e => {
             const mode = e.target.parentElement.title
             if (!mode) return
-            console.log(gameModes.find(gm => gm.name == mode))
-            updateParameters(gameModes.find(gm => gm.name == mode).parameters)
+            parameterManager.update(gameModes.find(gm => gm.name == mode).parameters)
         })
     })
 
@@ -484,9 +593,9 @@ function initGameModes() {
 function updateParameters(param) {
     const paramContainer = document.querySelector("#optionsContainer")
     const params = paramContainer.querySelectorAll("input")
+
     params.forEach((p) => {
         const para = parameters.find(par => par.id == p.id)
-        console.log(p.id, para.type)
         switch (para.type) {
             case "checkbox":
                 p.checked = param[p.id]
@@ -494,13 +603,10 @@ function updateParameters(param) {
             case "checkbox2":
             case "checkbox3":
             case "checkbox4":
-                console.log(p.classList)
                 p.classList.forEach(c => {
-                    console.log(c)
                     if (c == "le-checkbox") return
                     p.classList.remove(c)
                 })
-                console.log(p.classList)
                 if (param[p.id] != "unchecked") p.classList.add(param[p.id])
                 paramContainer.querySelector(`[for=${p.id}]`).innerHTML = para.labels[param[p.id]]
                 break;
@@ -545,7 +651,7 @@ async function searchRoutes(text) {
 
     searchResults.innerHTML = resultList;
     const suggestionDivs = document.getElementsByClassName("route-suggestion-container")
-    for(let i = 0; i < suggestionDivs.length; i++) {
+    for (let i = 0; i < suggestionDivs.length; i++) {
         suggestionDivs[i].addEventListener("click", () => selectRoute(i))
     }
 }

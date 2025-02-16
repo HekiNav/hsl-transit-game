@@ -17,18 +17,27 @@
     <nav>
         <h1>HSL Transitle</h1>
     </nav>
-    <!--  -->
+    <div id="savePopup" style="display: none;">
+        <div id="savePopupContent">
+            <h2 id="savePopupHeader" style="width: 20rem; height: 3rem;">Choose a name for your mode and save it</h2>
+
+            <input placeholder="My Custom Mode" type="text" name="name" id="Cname">
+            <button id="saveC">
+                <h1>SAVE</h1>
+            </button>
+        </div>
+    </div>
     <div id="popup" hidden>
         <div id="popupContent">
             <h1 id="popupHeader" style="width: 25rem; height: 3rem;">Welcome to HSL Transitle</h1>
 
             <div class="radio-inputs">
                 <label class="radio">
-                  <input type="radio" name="radio" checked="" id="guide">
+                  <input type="radio" autocomplete="off" name="radio" checked="" id="guide">
                   <span class="name">Instructions</span>
                 </label>
                 <label class="radio">
-                  <input type="radio" name="radio" id="modes">
+                  <input type="radio" autocomplete="off" name="radio" id="modes">
                   <span class="name">Options</span>
                 </label>
               </div>
@@ -66,6 +75,7 @@
                 </div>
                 <div id="optionsContainer">
                 </div>
+                <button id='saveCustom' class="hidden"><h2>Save custom mode</h2></button>
             </div>
             
             <button id="start">
