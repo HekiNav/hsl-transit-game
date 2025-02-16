@@ -743,7 +743,7 @@ async function guessRoute() {
       //tbd if typed route does not exist
       return 1;
     }
-    route = routes[0];
+    route = routes.filter(item => item.shortName == routeSearcher.value)[0]
   } else {
     route = selectedRoute;
   }
