@@ -30,7 +30,7 @@ const gameModes = [
     {
         name: "Hard",
         parameters: {
-            "favour-stops": "checked1",
+            "favour-stops": "unchecked",
             "map-visibility": "checked1",
             "night-lines": false,
             "trunk-buses": false,
@@ -117,7 +117,7 @@ const parameters = [
             checked1: "Favour stops with more departures",
             checked2: "Favour stops with <strong>less</strong> departures",
             checked3: "Favour stops with <strong>even less</strong> departures",
-            unchecked: "Favour stops with more departures"
+            unchecked: "Fully random stop"
         },
     },
     {
@@ -133,6 +133,7 @@ const parameters = [
     }
 ]
 
+const hslBlue = "#007ac9"
 
 function show() {
     document.getElementById("popup").style.display = "flex"
@@ -202,6 +203,9 @@ let suggestions = [];
 let stopsOnScreen = [];
 let selectedRoute = "";
 let guessN = 1
+let startRoutes = [];
+let endRoutes = [];
+let routeStops = {};
 
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -346,7 +350,6 @@ function startGame(stop1, stop2) {
     stop1Id = stop1.gtfsId
     stop2Id = stop2.gtfsId
 }
-
 
 function initGameModes() {
     const selected = document.querySelector(".e-selected")
@@ -557,74 +560,147 @@ function selectRoute(num) {
 }
 
 async function guessRoute() {
-    const routeSearcher = document.getElementById("routesearcher")
-    const guessBtn = document.getElementById("guess")
-    let route = ""
+  const searchResults = document.getElementById("searchresults");
+  const routeSearcher = document.getElementById("routesearcher");
+  const guessBtn = document.getElementById("guess");
+  let route = "";
 
-    // if route was just typed in and not chosen from the suggestions box
-    if(selectedRoute.shortName != routeSearcher.value){
-        const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
-            "headers": {
-                "Content-Type": "application/graphql",
-            },
-            body: routesQuery.replace("STOP_NAME", routeSearcher.value),
-            method: "POST",
-        })
-        const data = await response.json()
-        const routes = data.data.routes
-        if(routes.length == 0){
-            //tbd if typed route does not exist
-            return 1
-        }
-        route = routes[0]
-    } else {
-        route = selectedRoute
-    }
-
-    guessN += 1
-    guessBtn.innerHTML = `${guessN}/10`
-    routeSearcher.value = ""
-
-    const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
-        "headers": {
-            "Content-Type": "application/graphql",
+  // if route was just typed in and not chosen from the suggestions box
+  if (selectedRoute.shortName != routeSearcher.value) {
+    const response = await fetch(
+      "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
+      {
+        headers: {
+          "Content-Type": "application/graphql",
         },
-        body: singleRouteQuery.replace("ROUTE_ID", route.gtfsId),
+        body: routesQuery.replace("STOP_NAME", routeSearcher.value),
         method: "POST",
-    })
-    const data = await response.json()
-    const resRoute = data.data.route
+      }
+    );
+    const data = await response.json();
+    const routes = data.data.routes;
+    if (routes.length == 0) {
+      //tbd if typed route does not exist
+      return 1;
+    }
+    route = routes[0];
+  } else {
+    route = selectedRoute;
+  }
 
-    renderPolyline(resRoute.patterns[0].geometry, "blue")
-    if(resRoute.patterns.length != 1) renderPolyline(resRoute.patterns[1].geometry, "blue")
+  guessN += 1;
+  guessBtn.innerHTML = `${guessN}/10`;
+  routeSearcher.value = "";
+  searchResults.innerHTML = "";
 
-    renderStops(resRoute.stops)
-    resRoute.stops.forEach(stop => {
-        stopsOnScreen.push(stop.gtfsId)
-    })
+  const response = await fetch(
+    "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
+    {
+      headers: {
+        "Content-Type": "application/graphql",
+      },
+      body: singleRouteQuery.replace("ROUTE_ID", route.gtfsId),
+      method: "POST",
+    }
+  );
+  const data = await response.json();
+  const resRoute = data.data.route;
+
+  routeStops[route.gtfsId] = resRoute.stops.map(stop => stop.gtfsId)
+
+  //rendering
+  renderPolyline(resRoute.patterns[0].geometry, hslBlue, route.shortName);
+  if (resRoute.patterns.length != 1)
+    renderPolyline(resRoute.patterns[1].geometry, hslBlue, route.shortName);
+
+  checkWin(resRoute, route.gtfsId)
+
+  renderStops(resRoute.stops, route.gtfsId);
 }
 
-function renderPolyline(shape, color) {
+function checkWin(routeObj, routeid) {
+  const routeStopIds = routeObj.stops.map((item) => item.gtfsId);
+  b = routeStopIds;
+
+  //find all lines that have been connected to this line
+  let connectedRoutes = getConnectedRoutes(routeStopIds, routeid);
+  queue = connectedRoutes
+  explored = []
+  while(queue.length != 0){
+    current = queue.shift()
+    connections = getConnectedRoutes(routeStops[current], current)
+    connections.forEach(conn => {
+        if(!(explored.includes(conn)) && !(queue.includes(conn))) {
+            queue.push(conn)
+        }
+    })
+    connectedRoutes = connectedRoutes.concat(connections)
+    explored.push(current)
+  }
+  connectedRoutes = [...new Set(connectedRoutes)]
+
+  if (
+    connectedRoutes.filter((item) => startRoutes.includes(item)).length > 0 ||
+    routeStopIds.includes(stop1Id)
+  ) {
+    startRoutes.push(routeid);
+    startRoutes = startRoutes.concat(connectedRoutes);
+    startRoutes = [...new Set(startRoutes)]
+  }
+  if (
+    connectedRoutes.filter((item) => endRoutes.includes(item)).length > 0 ||
+    routeStopIds.includes(stop2Id)
+  ) {
+    endRoutes = endRoutes.concat(connectedRoutes);
+    endRoutes.push(routeid);
+    endRoutes = [...new Set(endRoutes)]
+  }
+
+  //if the start and end match up (win)
+  if (startRoutes.filter((item) => endRoutes.includes(item)).length > 0) {
+    alert("YOU WIN");
+  }
+
+  routeObj.stops.forEach((stop) => {
+    stopsOnScreen.push({ id: stop.gtfsId, route: routeid });
+  });
+}
+
+function renderPolyline(shape, color, tooltip) {
     //Draw polyline
     const polyline = L.polyline(shape, {
         color: color,
         dashArray: color == 'gray' ? [2, 3] : null,
         renderer: canvasRenderer,
-    })
+    }).bindTooltip(tooltip)
     polyline.addTo(routesGroup);
     return polyline
 }
 
-function renderStops(stops) {
+function getConnectedRoutes(routeStops, routeid) {
+    const otherStopsOnScreen = stopsOnScreen.filter((stop) => stop.route != routeid)
+    const otherStopIdsOnScreen = otherStopsOnScreen.map((item) => item.id);
+    a = stopsOnScreen
+    
+    routes = []
+    routeStops.forEach(stop => {
+        if(otherStopIdsOnScreen.includes(stop)) {
+            transferStops = otherStopsOnScreen.filter(item => item.id == stop)
+            routes = routes.concat(transferStops.map(obj => obj.route))
+        }
+    })
+    
+    return([...new Set(routes)])
+
+}
+
+function renderStops(stops, routeid) {
     stops.forEach(stop => {
-        console.log(stop)
-        console.log(stopsOnScreen)
-        console.log(stopsOnScreen.includes(stop.gtfsId))
         const marker = L.circleMarker([stop.lat, stop.lon],
             {
-                radius: getStopStyle("radius", stop),
-                color: getStopStyle("color", stop),
-                fillColor: getStopStyle("fillcolor", stop),
+                radius: getStopStyle("radius", stop, routeid),
+                color: getStopStyle("color", stop, routeid),
+                fillColor: getStopStyle("fillcolor", stop, routeid),
                 fillOpacity: 1,
                 renderer: canvasRenderer,
             }).bindTooltip(`${stop.code} ${stop.name}`)
@@ -632,20 +708,23 @@ function renderStops(stops) {
     })
 }
 
-function getStopStyle(type, stop){
+function getStopStyle(type, stop, routeid){
+    const otherStopsOnScreen = stopsOnScreen.filter((stop) => stop.route != routeid)
+    const otherStopIdsOnScreen = otherStopsOnScreen.map((item) => item.id);
     if(type == "radius") {
-        if(stopsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
+        if(otherStopIdsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
         return 4
     }
     if(type == "fillcolor") {
         if(stop.gtfsId == stop1Id) return "green"
         if(stop.gtfsId == stop2Id) return "green"
-        if(stopsOnScreen.includes(stop.gtfsId)) return "white"
-        return "blue"
+        if(otherStopIdsOnScreen.includes(stop.gtfsId)) return "white"
+        return hslBlue
     }
     if(type == "color") {
         if(stop.gtfsId == stop1Id) return "green"
         if(stop.gtfsId == stop2Id) return "green"
-        return "blue"
+        return hslBlue
     }
 }
+
