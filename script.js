@@ -138,6 +138,7 @@ const parameters = [
 ]
 
 const hslBlue = "#007ac9"
+const hslGrey = "#666666"
 
 function show() {
     document.getElementById("popup").style.display = "flex"
@@ -321,10 +322,13 @@ const singleRouteQuery = `{
 let suggestions = [];
 let stopsOnScreen = [];
 let selectedRoute = "";
-let guessN = 1
+let guessN = 1;
 let startRoutes = [];
 let endRoutes = [];
 let routeStops = {};
+let routePolylines = {};
+let routeMarkers = {};
+let routesThatConnect = []; //connectedRoutes is taken already lol
 
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -467,10 +471,10 @@ async function prepareGame() {
         )
     console.log(filtered)
     //for testing to always use same stop
-    /*const [random1] = await filtered.filter(item => item.code == "E1053")
-    const [random2] = await filtered.filter(item => item.code == "H3181")*/
-    const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
+    const [random1] = await filtered.filter(item => item.code == "E4321")
+    const [random2] = await filtered.filter(item => item.code == "H3181")
+    /*const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
+    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)*/
     console.log(random1, random2)
     return [random1, random2]
 }
@@ -768,14 +772,18 @@ async function guessRoute() {
 
   routeStops[route.gtfsId] = resRoute.stops.map(stop => stop.gtfsId)
 
-  //rendering
-  renderPolyline(resRoute.patterns[0].geometry, hslBlue, route.shortName);
-  if (resRoute.patterns.length != 1)
-    renderPolyline(resRoute.patterns[1].geometry, hslBlue, route.shortName);
-
-  renderStops(resRoute.stops, route.gtfsId);
-
+  //also updates colors
   checkWin(resRoute, route.gtfsId)
+
+  const routeColor = startRoutes.includes(route.gtfsId) || endRoutes.includes(route.gtfsId) ? hslBlue : hslGrey;
+
+  let geometry = resRoute.patterns[0].geometry
+  if(resRoute.patterns[1]) geometry = geometry.concat(resRoute.patterns[1].geometry.reverse())
+  //rendering
+  renderPolyline(geometry, routeColor, route.shortName, route.gtfsId);
+
+  renderStops(resRoute.stops, route.gtfsId, routeColor);
+
 }
 
 function checkWin(routeObj, routeid) {
@@ -803,9 +811,11 @@ function checkWin(routeObj, routeid) {
     connectedRoutes.filter((item) => startRoutes.includes(item)).length > 0 ||
     routeStopIds.includes(stop1Id)
   ) {
+    console.log("start")
     startRoutes.push(routeid);
     startRoutes = startRoutes.concat(connectedRoutes);
     startRoutes = [...new Set(startRoutes)]
+    routesThatConnect.push(routeid)
   }
   if (
     connectedRoutes.filter((item) => endRoutes.includes(item)).length > 0 ||
@@ -814,7 +824,20 @@ function checkWin(routeObj, routeid) {
     endRoutes = endRoutes.concat(connectedRoutes);
     endRoutes.push(routeid);
     endRoutes = [...new Set(endRoutes)]
+    routesThatConnect.push(routeid)
   }
+
+  console.log(connectedRoutes)
+  //if there is a connection the start or end point
+  if(routesThatConnect.filter((item) => connectedRoutes.includes(item)).length > 0 || routesThatConnect.includes(routeid)) {
+    routesThatConnect = routesThatConnect.concat(connectedRoutes)
+  }
+  routesThatConnect = [...new Set(routesThatConnect)];
+  routesThatConnect.forEach((route) => {
+      if (!(route == routeid)) {
+        changeLineColor(route, hslBlue);
+      }
+  });
 
   //if the start and end match up (win)
   if (startRoutes.filter((item) => endRoutes.includes(item)).length > 0) {
@@ -826,13 +849,14 @@ function checkWin(routeObj, routeid) {
   });
 }
 
-function renderPolyline(shape, color, tooltip) {
+function renderPolyline(shape, color, tooltip, routeid) {
     //Draw polyline
     const polyline = L.polyline(shape, {
         color: color,
         dashArray: color == 'gray' ? [2, 3] : null,
         renderer: canvasRenderer,
     }).bindTooltip(tooltip)
+    routePolylines[routeid] = polyline
     polyline.addTo(routesGroup);
     return polyline
 }
@@ -854,21 +878,24 @@ function getConnectedRoutes(routeStops, routeid) {
 
 }
 
-function renderStops(stops, routeid) {
+function renderStops(stops, routeid, routeColor) {
+    let markerArray = [];
     stops.forEach(stop => {
         const marker = L.circleMarker([stop.lat, stop.lon],
             {
-                radius: getStopStyle("radius", stop, routeid),
-                color: getStopStyle("color", stop, routeid),
-                fillColor: getStopStyle("fillcolor", stop, routeid),
+                radius: getStopStyle("radius", stop, routeid, routeColor),
+                color: getStopStyle("color", stop, routeid, routeColor),
+                fillColor: getStopStyle("fillcolor", stop, routeid, routeColor),
                 fillOpacity: 1,
                 renderer: canvasRenderer,
             }).bindTooltip(`${stop.code} ${stop.name}`)
+        markerArray.push(marker)
         marker.addTo(routesGroup)
     })
+    routeMarkers[routeid] = markerArray
 }
 
-function getStopStyle(type, stop, routeid){
+function getStopStyle(type, stop, routeid, routeColor){
     const otherStopsOnScreen = stopsOnScreen.filter((stop) => stop.route != routeid)
     const otherStopIdsOnScreen = otherStopsOnScreen.map((item) => item.id);
     if(type == "radius") {
@@ -879,12 +906,18 @@ function getStopStyle(type, stop, routeid){
         if(stop.gtfsId == stop1Id) return "green"
         if(stop.gtfsId == stop2Id) return "green"
         if(otherStopIdsOnScreen.includes(stop.gtfsId)) return "white"
-        return hslBlue
+        return routeColor
     }
     if(type == "color") {
         if(stop.gtfsId == stop1Id) return "green"
         if(stop.gtfsId == stop2Id) return "green"
-        return hslBlue
+        return routeColor
     }
 }
 
+function changeLineColor(routeid, color) {
+    routePolylines[routeid].setStyle({color: color})
+    routeMarkers[routeid].forEach(marker => {
+        marker.setStyle({color: color, fillColor: marker._radius == 4 ? color : "white"})
+    })
+}
