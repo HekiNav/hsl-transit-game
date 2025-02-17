@@ -471,10 +471,10 @@ async function prepareGame() {
         )
     console.log(filtered)
     //for testing to always use same stop
-    const [random1] = await filtered.filter(item => item.code == "E4321")
-    const [random2] = await filtered.filter(item => item.code == "H3181")
-    /*const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)*/
+    /*const [random1] = await filtered.filter(item => item.code == "E4321")
+    const [random2] = await filtered.filter(item => item.code == "H3181")*/
+    const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
+    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
     console.log(random1, random2)
     return [random1, random2]
 }
@@ -778,7 +778,11 @@ async function guessRoute() {
   const routeColor = startRoutes.includes(route.gtfsId) || endRoutes.includes(route.gtfsId) ? hslBlue : hslGrey;
 
   let geometry = resRoute.patterns[0].geometry
-  if(resRoute.patterns[1]) geometry = geometry.concat(resRoute.patterns[1].geometry.reverse())
+  if(resRoute.patterns[1]) {
+    let geometry2 = resRoute.patterns[1].geometry
+    if(resRoute.patterns[1].directionId == 1) geometry2 = geometry2.reverse()
+    geometry = geometry.concat()
+  }
   //rendering
   renderPolyline(geometry, routeColor, route.shortName, route.gtfsId);
 
