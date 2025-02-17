@@ -153,7 +153,14 @@ function closeSavePopup() {
 }
 
 class ParameterManager {
+    #params
     constructor() {
+        this.#params = {}
+    }
+    get(paramName) {
+        return this.#params[paramName]
+    }
+    set(paramName) {
 
     }
     update(params = null) {
@@ -189,6 +196,7 @@ class ParameterManager {
         Object.keys(params).forEach((p, i) => {
             this[p] = Object.values(params)[i]
         })
+        this.#params = params
         updateParameters(params)
     }
     toJSON() {
@@ -298,6 +306,15 @@ const routesQuery = `{
     }
   }
 }`
+const allRoutesQuery = `{
+  routes{
+    gtfsId
+    shortName
+    longName
+    mode
+    type
+  }
+}`
 const singleRouteQuery = `{
   route(id: "ROUTE_ID") {
     stops {
@@ -372,11 +389,14 @@ tabSelector2.addEventListener("click", e => {
     document.getElementById("modesC").classList.add("hidden")
     document.getElementById("guideC").classList.remove("hidden")
 })
-
+let routes = []
 show()
 initGameModes()
 prepareGame().then((stops) => {
-    const [stop1, stop2] = stops
+    const [stop1, stop2, routesD] = stops
+    routes = routesD.data.routes
+    miniSearch.addAll(routes)
+    console.log(routes)
     const startButton = document.getElementById("start")
     startButton.classList.add("active")
     startButton.innerHTML = "<h1>START</h1>"
@@ -384,6 +404,12 @@ prepareGame().then((stops) => {
         startButton.classList.add("clicked")
     }, { once: true })
     startButton.addEventListener("click", e => startGame(stop1, stop2), { once: true })
+})
+
+const miniSearch = new MiniSearch({
+    fields: ["longName","shortName"],
+    storeFields: ["longName","shortName","gtfsId","type"],
+    idField: "gtfsId",
 })
 
 const map = L.map('map').setView({ lat: 60.17210770417428, lng: 24.94059562683106 }, 13);
@@ -440,6 +466,14 @@ const zoomToGroup = L.featureGroup().addTo(map)
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 
 async function prepareGame() {
+    const routeResponse =  await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
+        "headers": {
+            "Content-Type": "application/graphql",
+        },
+        body: allRoutesQuery,
+        method: "POST",
+    })
+    const routes = await routeResponse.json()
     const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
         "headers": {
             "Content-Type": "application/graphql",
@@ -472,7 +506,7 @@ async function prepareGame() {
     const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
     const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
     console.log(random1, random2)
-    return [random1, random2]
+    return [random1, random2, routes]
 }
 function startGame(stop1, stop2) {
     hide()
@@ -677,15 +711,10 @@ function parseHTML(html) {
 }
 
 async function searchRoutes(text) {
-    const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
-        "headers": {
-            "Content-Type": "application/graphql",
-        },
-        body: routesQuery.replace("STOP_NAME", text),
-        method: "POST",
+    const routes = miniSearch.search(text,{
+         boost: { shortName: 2 },
+         fuzzy: 0.5
     })
-    const data = await response.json()
-    const routes = data.data.routes
     const searchResults = document.getElementById("searchresults")
 
     let resultList = ""

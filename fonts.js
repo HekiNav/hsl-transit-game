@@ -10,7 +10,6 @@ document.fonts.add(GothamXNarrow);
 document.fonts.add(GothamRounded);
 GothamXNarrow.load();
 GothamRounded.load();
-// if all fonts loaded redraw fitty
 document.fonts.ready.then(() => {
     textFit(document.getElementById("hpt2"))
     textFit(document.getElementById("hpt1"))
