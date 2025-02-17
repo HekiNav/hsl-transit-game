@@ -15,7 +15,8 @@
 
 <body>
     <nav>
-        <h1>HSL Hop</h1>
+        <h1 data-en="HSL Hop" data-fi="HSL-Hyppely">HSL Hop</h1>
+        <button id="toggleLanguage" data-en="FI", data-fi="EN">FI</button>
     </nav>
     <div id="savePopup" style="display: none;">
         <div id="savePopupContent">
@@ -23,42 +24,46 @@
 
             <input placeholder="My Custom Mode" type="text" name="name" id="Cname">
             <button id="saveC">
-                <h1>SAVE</h1>
+                <h1 data-en="SAVE" data-fi="TALLENNA">SAVE</h1>
             </button>
         </div>
     </div>
     <div id="popup" hidden>
         <div id="popupContent">
-            <h1 id="popupHeader" style="width: 25rem; height: 3rem;">Welcome to HSL Transitle</h1>
+            <h1 id="popupHeader" style="width: 25rem; height: 3rem;" data-en="Welcome to HSL Hop" data-fi="Tervetuloa HSL-Hyppelyyn">Welcome to HSL Hop</h1>
 
             <div class="radio-inputs">
                 <label class="radio">
                   <input type="radio" autocomplete="off" name="radio" checked="" id="guide">
-                  <span class="name">Instructions</span>
+                  <span class="name" data-en="Instruction" data-fi="Ohjeet">Instructions</span>
                 </label>
                 <label class="radio">
                   <input type="radio" autocomplete="off" name="radio" id="modes">
-                  <span class="name">Options</span>
+                  <span class="name"data-en="Options" data-fi="Valinnat">Options</span>
                 </label>
               </div>
               
             <div id="guideC">
-                <p>This is a <a href="https://travle.earth">Travle</a> inspired transit game about finding the route with
-                    the least transfers between two random stops in the HSL region. <br>
-                    The game takes a couple of seconds to load everything, and the button below can be used to start the
-                    game when everything is loaded.<br>
+                <p><span data-en="This is a" data-fi="tämä on ">This is a </span><a href="https://travle.earth">Travle</a><span data-en=" inspired transit game about finding the route with
+                    the least transfers between two random stops in the HSL region." data-fi="n kaltainen peli, jonka tavoite on löytää kahden arvotun pysäkin välillä reitti, jolla on vähiten vaihtoja."> inspired transit game about finding the route with
+                    the least transfers between two random stops in the HSL region. </span><br>
+                    <span data-en="The game takes a couple of seconds to load everything, and the button below can be used to start the
+                    game when everything is loaded." data-fi="Pelillä kestää muutama sekunti ladata tarvittavat tiedot, ja sen jälkeen pelin voi aloittaa alla olevasta napista.">The game takes a couple of seconds to load everything, and the button below can be used to start the
+                        game when everything is loaded.</span><br>
                 </p>
-                <p>
-                    On the options you can select from five game modes or create you own configurations. Easy mode is recommended for learing the game.
+                <p data-en="On the options tab you can select from five default game modes or create your own configurations. Easy mode is recommended for learning the game." data-fi="Valinnat-välilehdeltä voit valita viidestä oletuspelimuodosta tai luoda oman. Helppoa pelimmuoto on paras pelin opetteluun,">
+                    On the options tab you can select from five default game modes or create your own configurations. Easy mode is recommended for learning the game.
                 </p>
-                <p>
+                <p data-en="Your two stops can be seen on the map. The map can be moved and zoomed. On the top left there are 
+                controls for zooming in and out, resetting the pan and zoom to the state at the start of the game. 
+                Then there are the two buttons for zooming in to your destination and origin.">
                     Your two stops can be seen on the map. The map can be moved and zoomed. On the top left there are 
                     controls for zooming in and out, resetting the pan and zoom to the state at the start of the game. 
                     Then there are the two buttons for zooming in to your destination and origin.
                 </p>
             </div>
             <div id="modesC" class="hidden">
-                <h2>Game modes</h2>
+                <h2 data-en="Game modes" data-fi="Pelimuodot">Game modes</h2>
                 <div class="e-select">
                     <div class="e-selected" data-default="Normal" data-one="Easy" data-two="Hard"
                         data-three="Pain and Suffering" data-four="Torment and Misery" data-three="option-3">
@@ -75,24 +80,24 @@
                 </div>
                 <div id="optionsContainer">
                 </div>
-                <button id='saveCustom' class="hidden"><h2>Save custom mode</h2></button>
+                <button id='saveCustom' class="hidden"><h2 data-en="Save custom game mode" data-fi="Tallenna oma pelimuoto">Save custom game mode</h2></button>
             </div>
             
             <button id="start">
-                <h1>PREPARING </h1><img src="./img/loading.png" alt="loading..." id="loadingIcon">
+                <h1 data-en="PREPARING" data-fi="VALMISTELLAAN">PREPARING </h1><img src="./img/loading.png" alt="loading..." id="loadingIcon">
             </button>
         </div>
     </div>
     <div class="container">
-        <h1 id="header"><span id="hpt1" style="width: 30rem; height: 1.5em;">Today I'd like to go from </span><span
-                style="width: 30rem; height:1.3em;" id="hpt2">one stop to another</span></h1>
+        <h1 id="header"><span id="hpt1" style="width: 30rem; height: 1.5em;" data-en="Today I'd like to go from " data-fi="Tänään haluaisin kulkea pysäkiltä">Today I'd like to go from </span><span
+                style="width: 30rem; height:1.3em; display: blockS;" id="hpt2" data-en="one stop to another" data-fi="A pysäklle B">one stop to another</span></h1>
         <div id="map" style="width: 30rem; height: 25rem;"></div>
         <div class="inputcontainer">
-            <input type="text" id="routesearcher" placeholder="Search for a line...">
+            <input type="text" id="routesearcher" data-en="Search for a line" data-fi="Hae linjoja" placeholder="Search for a line...">
             <div id="searchresultscontainer">
                 <ul id="searchresults"></ul>
             </div>
-            <button id="guess">Guess (1/10)</button>
+            <button id="guess" data-en="Guess (1/10)" data-fi="Arvaa (1/10)">Guess (1/10)</button>
         </div>
     </div>
     <script src="fonts.js"></script>

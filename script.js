@@ -351,6 +351,23 @@ let routesThatConnect = []; //connectedRoutes is taken already lol
 //[][][][][] EXECUTION START [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 
+let lang = 0 //en
+const langs = [
+    "en",
+    "fi"
+]
+const titles = [
+    "HSL Hop",
+    "HSL-Hyppely"
+]
+const languageToggle = document.getElementById("toggleLanguage")
+languageToggle.addEventListener("click", e => {
+    lang >= langs.length-1 ? lang = 0 : lang++
+    console.log(lang)
+    reloadLang()
+})
+
+
 const saveCustomButton = document.getElementById("saveCustom")
 saveCustomButton.addEventListener("mousedown", e => saveCustomButton.classList.add("clicked"))
 saveCustomButton.addEventListener("mouseup", e => saveCustomButton.classList.remove("clicked"))
@@ -403,7 +420,7 @@ prepareGame().then((stops) => {
     console.log(routes)
     const startButton = document.getElementById("start")
     startButton.classList.add("active")
-    startButton.innerHTML = "<h1>START</h1>"
+    startButton.innerHTML = `<h1 data-en="START" data-fi="ALOITA">START</h1>`
     startButton.addEventListener("mousedown", e => {
         startButton.classList.add("clicked")
     }, { once: true })
@@ -469,6 +486,16 @@ const zoomToGroup = L.featureGroup().addTo(map)
 //[][][][][] FUNCTIONS [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 //[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
 
+function reloadLang() {
+    document.querySelectorAll(`*[data-${langs[lang]}]`).forEach(e => {
+        e.placeholder ? e.placeholder = e.getAttribute(`data-${langs[lang]}`) : e.innerHTML = e.getAttribute(`data-${langs[lang]}`)
+    })
+    document.title = titles[lang]
+    textFit(document.getElementById("hpt2"))
+    textFit(document.getElementById("hpt1"))
+    textFit(document.getElementById("popupHeader"))
+}
+
 async function prepareGame() {
     const routeResponse =  await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
         "headers": {
@@ -518,7 +545,9 @@ function startGame(stop1, stop2) {
     const stop2M = L.marker({ lat: stop2.lat, lng: stop2.lon }).addTo(zoomToGroup).bindTooltip((stop2.code ? stop2.code + " " : "") + stop2.name)
     map.fitBounds(zoomToGroup.getBounds().pad(0.1))
     document.getElementById("hpt2").innerHTML = `${(stop1.code ? stop1.code + " " : "") + stop1.name} to ${(stop2.code ? stop2.code + " " : "") + stop2.name}`
-    textFit(document.getElementById("hpt2"))
+    document.getElementById("hpt2").removeAttribute("data-en")
+    document.getElementById("hpt2").removeAttribute("data-fi")
+    reloadLang()
 
     const guessBtn = document.getElementById("guess")
     guessBtn.addEventListener("mousedown", e => guessBtn.classList.add("clicked"))

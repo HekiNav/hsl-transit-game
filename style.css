@@ -27,8 +27,16 @@ nav {
     width: 100vw;
     display: flex;
     align-items: center;
-    justify-content: start;
+    justify-content: space-between;
     z-index: 1002;
+}
+#toggleLanguage{
+    font-family: "GothamRounded";
+    color: white;
+    font-size: 2rem;
+    margin: 0.5rem 2rem 0.5rem 0;
+    background:none;
+    border: 0;
 }
 .container{
     align-self: center;
