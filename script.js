@@ -415,7 +415,7 @@ let routes = []
 show()
 initGameModes()
 prepareGame().then((stops) => {
-    const [stop1, stop2, routesD] = stops
+    const [data, routesD] = stops
     routes = routesD.data.routes
     miniSearch.addAll(routes)
     console.log(routes)
@@ -425,7 +425,7 @@ prepareGame().then((stops) => {
     startButton.addEventListener("mousedown", e => {
         startButton.classList.add("clicked")
     }, { once: true })
-    startButton.addEventListener("click", e => startGame(stop1, stop2), { once: true })
+    startButton.addEventListener("click", e => startGame(data), { once: true })
 })
 
 const miniSearch = new MiniSearch({
@@ -494,7 +494,7 @@ function reloadLang() {
     document.title = titles[lang]
     textFit(document.getElementById("hpt2"))
     textFit(document.getElementById("hpt1"))
-    textFit(document.getElementById("popupHeader"))
+    if (!document.getElementById("popup").style.display == "none") textFit(document.getElementById("popupHeader"))
     reloadGameModes()
     parameterManager.update()
 }
@@ -508,44 +508,26 @@ async function prepareGame() {
         method: "POST",
     })
     const routes = await routeResponse.json()
-    const response = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
-        "headers": {
-            "Content-Type": "application/graphql",
-        },
-        body: stopsQuery,
-        method: "POST",
+    const response = await fetch("https://hsl-hop-api.loophole.site/random", {
+
     })
     const data = await response.json()
-    const stops = await data.data.stops
-    const filtered =
-        await stops.map(
-            stop =>
-                stop.parentStation ||
-                stop
-        ).filter(
-            (value, index, self) =>
-                index === self.findIndex((t) => (
-                    t.gtfsId === value.gtfsId
-                ))
-        ).filter(
-            stop =>
-                stop.routes ?
-                    stop.routes.length :
-                    stop.stops.some(s => s.routes.length)
-        )
-    console.log(filtered)
-    //for testing to always use same stop
-    /*const [random1] = await filtered.filter(item => item.code == "E4321")
-    const [random2] = await filtered.filter(item => item.code == "H3181")*/
-    const [random1] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    const [random2] = await filtered.splice(Math.floor(Math.random() * filtered.length), 1)
-    console.log(random1, random2)
-    return [random1, random2, routes]
+    return [data, routes]
 }
-function startGame(stop1, stop2) {
+function startGame(data) {
+    const modes = [
+        "easy",
+        "normal",
+        "hard",
+        "extreme",
+        "suffering"
+    ]
+    const mode = modes[Number(window.getComputedStyle(document.querySelector('.e-selected'), ':before').getPropertyValue('content').split("-")[1].replace(")", ""))]
+    const [stop1, stop2] = data[mode]
+    console.log(stop1, stop2)
     hide()
-    const stop1M = L.marker({ lat: stop1.lat, lng: stop1.lon }).addTo(zoomToGroup).bindTooltip((stop1.code ? stop1.code + " " : "") + stop1.name)
-    const stop2M = L.marker({ lat: stop2.lat, lng: stop2.lon }).addTo(zoomToGroup).bindTooltip((stop2.code ? stop2.code + " " : "") + stop2.name)
+    const stop1M = L.marker({ lat: stop1.stop_lat, lng: stop1.stop_lon }).addTo(zoomToGroup).bindTooltip((stop1.code ? stop1.code + " " : "") + stop1.name)
+    const stop2M = L.marker({ lat: stop2.stop_lat, lng: stop2.stop_lon }).addTo(zoomToGroup).bindTooltip((stop2.code ? stop2.code + " " : "") + stop2.name)
     map.fitBounds(zoomToGroup.getBounds().pad(0.1))
     document.getElementById("hpt2").innerHTML = `${(stop1.code ? stop1.code + " " : "") + stop1.name} to ${(stop2.code ? stop2.code + " " : "") + stop2.name}`
     document.getElementById("hpt2").removeAttribute("data-en")
