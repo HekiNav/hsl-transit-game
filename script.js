@@ -1,6 +1,6 @@
 const gameModes = [
     {
-        name: "Easy",
+        name: { en: "Easy", fi: "Helppo" },
         parameters: {
             "map-visibility": "checked1",
             "favour-stops": "checked1",
@@ -14,7 +14,7 @@ const gameModes = [
         }
     },
     {
-        name: "Normal",
+        name: { en: "Normal", fi: "Tavallinen" },
         parameters: {
             "map-visibility": "checked1",
             "favour-stops": "checked1",
@@ -28,7 +28,7 @@ const gameModes = [
         }
     },
     {
-        name: "Hard",
+        name: { en: "Hard", fi: "Haastava" },
         parameters: {
             "favour-stops": "unchecked",
             "map-visibility": "checked1",
@@ -42,7 +42,7 @@ const gameModes = [
         }
     },
     {
-        name: "Extreme",
+        name: { en: "Extreme", fi: "Äärimmäinen" },
         parameters: {
             "favour-stops": "checked2",
             "map-visibility": "checked2",
@@ -56,7 +56,7 @@ const gameModes = [
         }
     },
     {
-        name: "Pain and Suffering",
+        name: { en: "Pain and Suffering", fi: "Tuskaa ja kidutusta" },
         parameters: {
             "favour-stops": "checked3",
             "map-visibility": "unchecked",
@@ -70,7 +70,7 @@ const gameModes = [
         }
     },
     {
-        name: "Custom",
+        name: { en: "Custom", fi: "Oma" },
         parameters: "custom"
     }
 ]
@@ -78,61 +78,61 @@ const parameters = [
     {
         id: "night-lines",
         type: "checkbox",
-        label: "Night-only lines"
+        label: { en: "Night-only lines", fi: "Yölinjat" }
     },
     {
         id: "u-lines",
         type: "checkbox",
-        label: "U Buses"
+        label: { en: "U Buses", fi: "U-Linjat" }
     },
     {
         id: "neigh-buses",
         type: "checkbox",
-        label: "Neighbourhood buses"
+        label: { en: "Neighbourhood buses", fi: "Lähibussit" }
     },
     {
         id: "trunk-buses",
         type: "checkbox",
-        label: "Trunk buses"
+        label: { en: "Trunk buses", fi: "Runkolinjat" }
     },
     {
         id: "other-trunk",
         type: "checkbox",
-        label: "Non-bus trunk lines (trains, metro, 15)"
+        label: { en: "Non-bus trunk lines (trains, metro, 15)", fi: "Muut runkolinjat (junat, metro, 15)" }
     },
     {
         id: "trams",
         type: "checkbox",
-        label: "Trams (not incl. 15)"
+        label: { en: "Trams (not incl. 15)", fi: "Raitiovaunut (ei sis. 15)" }
     },
     {
         id: "map-visibility",
         type: "checkbox2",
         labels: {
-            checked1: "Map",
-            checked2: "No background map",
-            unchecked: "Map"
+            checked1: { en: "Map", fi: "Kartta" },
+            checked2: { en: "No background map", fi: "Ei taustakarttaa" },
+            unchecked: { en: "Map", fi: "Kartta" }
         },
     },
     {
         id: "favour-stops",
         type: "checkbox3",
         labels: {
-            checked1: "Favour stops with more departures",
-            checked2: "Favour stops with <strong>less</strong> departures",
-            checked3: "Favour stops with <strong>even less</strong> departures",
-            unchecked: "Fully random stop"
+            checked1: { en: "Favour stops with more departures", fi: "Painota käytetympiä pysäkkejä" },
+            checked2: { en: "Favour stops with <strong>less</strong> departures", fi: "Painota <strong>vähemmän</strong> käytettyjä pysäkkejä" },
+            checked3: { en: "Favour stops with <strong>even less</strong> departures", fi: "Painota <strong>vielä vähemmän</strong> käytettyjä pysäkkejä" },
+            unchecked: { en: "Non-favoured random stop", fi: "Painottamaton arvottu pysäkki" }
         },
     },
     {
         id: "route-input-opt",
         type: "checkbox4",
         labels: {
-            checked1: "Search, only reached routes, terminuses in search",
-            checked2: "Search, all routes, terminuses in search",
-            checked3: "search, all routes, first letters of terminuses",
-            checked4: "No search, route <strong>name</strong> input",
-            unchecked: "No search, route <strong>ID</strong> input"
+            checked1: { en: "Search, only reached routes, terminuses in search", fi: "Haku, vain saavutetut linjat, pääteasemat haussa" },
+            checked2: { en: "Search, all routes, terminuses in search", fi: "Haku, kaikki linjat, pääteasemat haussa" },
+            checked3: { en: "search, all routes, first letters of terminuses", fi: "Haku, kaikki linjat, pääteasemista vain 1. kirjaimet" },
+            checked4: { en: "No search, route <strong>name</strong> input", fi: "Ei hakua, arvaus linjan nimellä" },
+            unchecked: { en: "No search, route <strong>ID</strong> input e.g. 69 => 1069", fi: "Ei hakua, arvaus linjan tunnuksella esim 69 => 1069" }
         },
     }
 ]
@@ -148,6 +148,7 @@ function hide() {
 }
 function openSavePopup() {
     document.getElementById("savePopup").style.display = "flex"
+    textFit(document.getElementById("savePopupHeader"))
 }
 function closeSavePopup() {
     document.getElementById("savePopup").style.display = "none"
@@ -225,7 +226,7 @@ class ParameterManager {
     toShort() {
         const paramContainer = document.querySelector("#optionsContainer")
         const checkboxes = paramContainer.querySelectorAll("input")
-        let string=""
+        let string = ""
         checkboxes.forEach(check => {
             check.disabled = false
             switch (check.parentElement.classList[0].split("-")[2]) {
@@ -235,7 +236,7 @@ class ParameterManager {
                 case "checkbox2":
                 case "checkbox3":
                 case "checkbox4":
-                    string += check.classList[1] ? check.classList[1].replace("checked","") : 0
+                    string += check.classList[1] ? check.classList[1].replace("checked", "") : 0
                     break;
                 default:
                     break;
@@ -245,7 +246,7 @@ class ParameterManager {
     }
     static fromShort(str) {
         let params = {}
-        str.split("\0")[1].split("").forEach((n,i) => {
+        str.split("\0")[1].split("").forEach((n, i) => {
             const key = parameters[i].id
             const type = parameters[i].type
             switch (type) {
@@ -255,7 +256,7 @@ class ParameterManager {
                 case "checkbox2":
                 case "checkbox3":
                 case "checkbox4":
-                    params[key] = Number(n) ? "checked"+n : "unchecked"
+                    params[key] = Number(n) ? "checked" + n : "unchecked"
                     break;
                 default:
                     break;
@@ -362,7 +363,7 @@ const titles = [
 ]
 const languageToggle = document.getElementById("toggleLanguage")
 languageToggle.addEventListener("click", e => {
-    lang >= langs.length-1 ? lang = 0 : lang++
+    lang >= langs.length - 1 ? lang = 0 : lang++
     console.log(lang)
     reloadLang()
 })
@@ -384,7 +385,7 @@ saveC.addEventListener("click", () => {
         parameters: parameterManager.toJSON()
     }
     const gameModeShort = `${document.getElementById("Cname").value || ""}\0${parameterManager.toShort()}`
-    const newURL = window.location.href.split("?")[0]+"?gameMode="+encodeURIComponent(gameModeShort)
+    const newURL = window.location.href.split("?")[0] + "?gameMode=" + encodeURIComponent(gameModeShort)
     // Both if one doesnt work
     window.location.replace(newURL)
     window.location.href = newURL
@@ -428,8 +429,8 @@ prepareGame().then((stops) => {
 })
 
 const miniSearch = new MiniSearch({
-    fields: ["longName","shortName"],
-    storeFields: ["longName","shortName","gtfsId","type"],
+    fields: ["longName", "shortName"],
+    storeFields: ["longName", "shortName", "gtfsId", "type"],
     idField: "gtfsId",
 })
 
@@ -494,10 +495,12 @@ function reloadLang() {
     textFit(document.getElementById("hpt2"))
     textFit(document.getElementById("hpt1"))
     textFit(document.getElementById("popupHeader"))
+    reloadGameModes()
+    parameterManager.update()
 }
 
 async function prepareGame() {
-    const routeResponse =  await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
+    const routeResponse = await fetch("https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94", {
         "headers": {
             "Content-Type": "application/graphql",
         },
@@ -564,7 +567,17 @@ function startGame(stop1, stop2) {
     stop1Id = stop1.gtfsId
     stop2Id = stop2.gtfsId
 }
-
+function reloadGameModes() {
+    gameModes.forEach((mode, i) => {
+        const selected = document.querySelector(".e-selected")
+        const options = document.querySelector(".e-options")
+        const name = mode.name[langs[lang]]
+        selected.setAttribute("data-" + i, name)
+        const label = options.querySelector(`[for=option-${i}]`)
+        label.setAttribute("data-txt", name)
+        label.parentElement.title = name
+    })
+}
 function initGameModes() {
     const selected = document.querySelector(".e-selected")
     const options = document.querySelector(".e-options")
@@ -577,18 +590,18 @@ function initGameModes() {
         console.log(param)
         const customMode = ParameterManager.fromShort(param)
         gameModes.push({
-            name: `Custom (${customMode.name})`,
+            name: { en: `Custom(${customMode.name})`, fi: `Oma(${customMode.name})` },
             parameters: customMode.parameters
         })
     }
     gameModes.forEach((mode, i) => {
-        console.log(mode)
-        selected.setAttribute("data-" + i, mode.name)
+        const name = mode.name[langs[lang]]
+        selected.setAttribute("data-" + i, name)
 
         options.innerHTML += `
-        <div title="${mode.name}">
+        <div title="${name}">
             <input id="option-${i}" name="option" type="radio" ${i == defaultMode ? "checked" : ""} />
-            <label class="e-option" for="option-${i}" data-txt="${mode.name}"></label>
+            <label class="e-option" for="option-${i}" data-txt="${name}"></label>
         </div>
         `
     })
@@ -706,7 +719,7 @@ function initGameModes() {
         p.addEventListener("click", e => {
             const mode = e.target.parentElement.title
             if (!mode) return
-            parameterManager.update(gameModes.find(gm => gm.name == mode).parameters)
+            parameterManager.update(gameModes.find(gm => gm.name[langs[lang]] == mode).parameters)
         })
     })
 
@@ -720,6 +733,7 @@ function updateParameters(param) {
         switch (para.type) {
             case "checkbox":
                 p.checked = param[p.id]
+                paramContainer.querySelector(`[for=${p.id}]`).innerHTML = para.label[langs[lang]]
                 break;
             case "checkbox2":
             case "checkbox3":
@@ -729,7 +743,7 @@ function updateParameters(param) {
                     p.classList.remove(c)
                 })
                 if (param[p.id] != "unchecked") p.classList.add(param[p.id])
-                paramContainer.querySelector(`[for=${p.id}]`).innerHTML = para.labels[param[p.id]]
+                paramContainer.querySelector(`[for=${p.id}]`).innerHTML = para.labels[param[p.id]][langs[lang]]
                 break;
             default:
                 break;
@@ -744,9 +758,9 @@ function parseHTML(html) {
 }
 
 async function searchRoutes(text) {
-    const routes = miniSearch.search(text,{
-         boost: { shortName: 2 },
-         fuzzy: 0.5
+    const routes = miniSearch.search(text, {
+        boost: { shortName: 2 },
+        fuzzy: 0.5
     })
     const searchResults = document.getElementById("searchresults")
 
@@ -782,133 +796,133 @@ function selectRoute(num) {
 }
 
 async function guessRoute() {
-  const searchResults = document.getElementById("searchresults");
-  const routeSearcher = document.getElementById("routesearcher");
-  const guessBtn = document.getElementById("guess");
-  let route = "";
+    const searchResults = document.getElementById("searchresults");
+    const routeSearcher = document.getElementById("routesearcher");
+    const guessBtn = document.getElementById("guess");
+    let route = "";
 
-  // if route was just typed in and not chosen from the suggestions box
-  if (selectedRoute.shortName != routeSearcher.value) {
+    // if route was just typed in and not chosen from the suggestions box
+    if (selectedRoute.shortName != routeSearcher.value) {
+        const response = await fetch(
+            "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
+            {
+                headers: {
+                    "Content-Type": "application/graphql",
+                },
+                body: routesQuery.replace("STOP_NAME", routeSearcher.value),
+                method: "POST",
+            }
+        );
+        const data = await response.json();
+        const routes = data.data.routes;
+        if (routes.length == 0) {
+            //tbd if typed route does not exist
+            return 1;
+        }
+        route = routes.filter(item => item.shortName == routeSearcher.value)[0]
+    } else {
+        route = selectedRoute;
+    }
+
+    guessN += 1;
+    guessBtn.innerHTML = `${guessN}/10`;
+    routeSearcher.value = "";
+    searchResults.innerHTML = "";
+
     const response = await fetch(
-      "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
-      {
-        headers: {
-          "Content-Type": "application/graphql",
-        },
-        body: routesQuery.replace("STOP_NAME", routeSearcher.value),
-        method: "POST",
-      }
+        "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
+        {
+            headers: {
+                "Content-Type": "application/graphql",
+            },
+            body: singleRouteQuery.replace("ROUTE_ID", route.gtfsId),
+            method: "POST",
+        }
     );
     const data = await response.json();
-    const routes = data.data.routes;
-    if (routes.length == 0) {
-      //tbd if typed route does not exist
-      return 1;
+    const resRoute = data.data.route;
+
+    routeStops[route.gtfsId] = resRoute.stops.map(stop => stop.gtfsId)
+
+    //also updates colors
+    checkWin(resRoute, route.gtfsId)
+
+    const routeColor = startRoutes.includes(route.gtfsId) || endRoutes.includes(route.gtfsId) ? hslBlue : hslGrey;
+
+    let geometry = resRoute.patterns[0].geometry
+    if (resRoute.patterns[1]) {
+        let geometry2 = resRoute.patterns[1].geometry
+        if (resRoute.patterns[1].directionId == 1) geometry2 = geometry2.reverse()
+        geometry = geometry.concat()
     }
-    route = routes.filter(item => item.shortName == routeSearcher.value)[0]
-  } else {
-    route = selectedRoute;
-  }
+    //rendering
+    renderPolyline(geometry, routeColor, route.shortName, route.gtfsId);
 
-  guessN += 1;
-  guessBtn.innerHTML = `${guessN}/10`;
-  routeSearcher.value = "";
-  searchResults.innerHTML = "";
-
-  const response = await fetch(
-    "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=a1e437f79628464c9ea8d542db6f6e94",
-    {
-      headers: {
-        "Content-Type": "application/graphql",
-      },
-      body: singleRouteQuery.replace("ROUTE_ID", route.gtfsId),
-      method: "POST",
-    }
-  );
-  const data = await response.json();
-  const resRoute = data.data.route;
-
-  routeStops[route.gtfsId] = resRoute.stops.map(stop => stop.gtfsId)
-
-  //also updates colors
-  checkWin(resRoute, route.gtfsId)
-
-  const routeColor = startRoutes.includes(route.gtfsId) || endRoutes.includes(route.gtfsId) ? hslBlue : hslGrey;
-
-  let geometry = resRoute.patterns[0].geometry
-  if(resRoute.patterns[1]) {
-    let geometry2 = resRoute.patterns[1].geometry
-    if(resRoute.patterns[1].directionId == 1) geometry2 = geometry2.reverse()
-    geometry = geometry.concat()
-  }
-  //rendering
-  renderPolyline(geometry, routeColor, route.shortName, route.gtfsId);
-
-  renderStops(resRoute.stops, route.gtfsId, routeColor);
+    renderStops(resRoute.stops, route.gtfsId, routeColor);
 
 }
 
 function checkWin(routeObj, routeid) {
-  const routeStopIds = routeObj.stops.map((item) => item.gtfsId);
-  b = routeStopIds;
+    const routeStopIds = routeObj.stops.map((item) => item.gtfsId);
+    b = routeStopIds;
 
-  //find all lines that have been connected to this line
-  let connectedRoutes = getConnectedRoutes(routeStopIds, routeid);
-  queue = [...connectedRoutes];
-  explored = [];
-  while(queue.length != 0){
-    current = queue.shift()
-    connections = getConnectedRoutes(routeStops[current], current)
-    connections.forEach(conn => {
-        if(!(explored.includes(conn)) && !(queue.includes(conn))) {
-            queue.push(conn)
+    //find all lines that have been connected to this line
+    let connectedRoutes = getConnectedRoutes(routeStopIds, routeid);
+    queue = [...connectedRoutes];
+    explored = [];
+    while (queue.length != 0) {
+        current = queue.shift()
+        connections = getConnectedRoutes(routeStops[current], current)
+        connections.forEach(conn => {
+            if (!(explored.includes(conn)) && !(queue.includes(conn))) {
+                queue.push(conn)
+            }
+        })
+        connectedRoutes = connectedRoutes.concat(connections)
+        explored.push(current)
+    }
+    connectedRoutes = [...new Set(connectedRoutes)]
+
+    if (
+        connectedRoutes.filter((item) => startRoutes.includes(item)).length > 0 ||
+        routeStopIds.includes(stop1Id)
+    ) {
+        console.log("start")
+        startRoutes.push(routeid);
+        startRoutes = startRoutes.concat(connectedRoutes);
+        startRoutes = [...new Set(startRoutes)]
+        routesThatConnect.push(routeid)
+    }
+    if (
+        connectedRoutes.filter((item) => endRoutes.includes(item)).length > 0 ||
+        routeStopIds.includes(stop2Id)
+    ) {
+        endRoutes = endRoutes.concat(connectedRoutes);
+        endRoutes.push(routeid);
+        endRoutes = [...new Set(endRoutes)]
+        routesThatConnect.push(routeid)
+    }
+
+    console.log(connectedRoutes)
+    //if there is a connection the start or end point
+    if (routesThatConnect.filter((item) => connectedRoutes.includes(item)).length > 0 || routesThatConnect.includes(routeid)) {
+        routesThatConnect = routesThatConnect.concat(connectedRoutes)
+    }
+    routesThatConnect = [...new Set(routesThatConnect)];
+    routesThatConnect.forEach((route) => {
+        if (!(route == routeid)) {
+            changeLineColor(route, hslBlue);
         }
-    })
-    connectedRoutes = connectedRoutes.concat(connections)
-    explored.push(current)
-  }
-  connectedRoutes = [...new Set(connectedRoutes)]
+    });
 
-  if (
-    connectedRoutes.filter((item) => startRoutes.includes(item)).length > 0 ||
-    routeStopIds.includes(stop1Id)
-  ) {
-    console.log("start")
-    startRoutes.push(routeid);
-    startRoutes = startRoutes.concat(connectedRoutes);
-    startRoutes = [...new Set(startRoutes)]
-    routesThatConnect.push(routeid)
-  }
-  if (
-    connectedRoutes.filter((item) => endRoutes.includes(item)).length > 0 ||
-    routeStopIds.includes(stop2Id)
-  ) {
-    endRoutes = endRoutes.concat(connectedRoutes);
-    endRoutes.push(routeid);
-    endRoutes = [...new Set(endRoutes)]
-    routesThatConnect.push(routeid)
-  }
+    //if the start and end match up (win)
+    if (startRoutes.filter((item) => endRoutes.includes(item)).length > 0) {
+        alert("YOU WIN");
+    }
 
-  console.log(connectedRoutes)
-  //if there is a connection the start or end point
-  if(routesThatConnect.filter((item) => connectedRoutes.includes(item)).length > 0 || routesThatConnect.includes(routeid)) {
-    routesThatConnect = routesThatConnect.concat(connectedRoutes)
-  }
-  routesThatConnect = [...new Set(routesThatConnect)];
-  routesThatConnect.forEach((route) => {
-      if (!(route == routeid)) {
-        changeLineColor(route, hslBlue);
-      }
-  });
-
-  //if the start and end match up (win)
-  if (startRoutes.filter((item) => endRoutes.includes(item)).length > 0) {
-    alert("YOU WIN");
-  }
-
-  routeObj.stops.forEach((stop) => {
-    stopsOnScreen.push({ id: stop.gtfsId, route: routeid });
-  });
+    routeObj.stops.forEach((stop) => {
+        stopsOnScreen.push({ id: stop.gtfsId, route: routeid });
+    });
 }
 
 function renderPolyline(shape, color, tooltip, routeid) {
@@ -927,16 +941,16 @@ function getConnectedRoutes(routeStops, routeid) {
     const otherStopsOnScreen = stopsOnScreen.filter((stop) => stop.route != routeid)
     const otherStopIdsOnScreen = otherStopsOnScreen.map((item) => item.id);
     a = stopsOnScreen
-    
+
     routes = []
     routeStops.forEach(stop => {
-        if(otherStopIdsOnScreen.includes(stop)) {
+        if (otherStopIdsOnScreen.includes(stop)) {
             transferStops = otherStopsOnScreen.filter(item => item.id == stop)
             routes = routes.concat(transferStops.map(obj => obj.route))
         }
     })
-    
-    return([...new Set(routes)])
+
+    return ([...new Set(routes)])
 
 }
 
@@ -957,29 +971,29 @@ function renderStops(stops, routeid, routeColor) {
     routeMarkers[routeid] = markerArray
 }
 
-function getStopStyle(type, stop, routeid, routeColor){
+function getStopStyle(type, stop, routeid, routeColor) {
     const otherStopsOnScreen = stopsOnScreen.filter((stop) => stop.route != routeid)
     const otherStopIdsOnScreen = otherStopsOnScreen.map((item) => item.id);
-    if(type == "radius") {
-        if(otherStopIdsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
+    if (type == "radius") {
+        if (otherStopIdsOnScreen.includes(stop.gtfsId) || stop.gtfsId == stop1Id || stop.gtfsId == stop2Id) return 8
         return 4
     }
-    if(type == "fillcolor") {
-        if(stop.gtfsId == stop1Id) return "green"
-        if(stop.gtfsId == stop2Id) return "green"
-        if(otherStopIdsOnScreen.includes(stop.gtfsId)) return "white"
+    if (type == "fillcolor") {
+        if (stop.gtfsId == stop1Id) return "green"
+        if (stop.gtfsId == stop2Id) return "green"
+        if (otherStopIdsOnScreen.includes(stop.gtfsId)) return "white"
         return routeColor
     }
-    if(type == "color") {
-        if(stop.gtfsId == stop1Id) return "green"
-        if(stop.gtfsId == stop2Id) return "green"
+    if (type == "color") {
+        if (stop.gtfsId == stop1Id) return "green"
+        if (stop.gtfsId == stop2Id) return "green"
         return routeColor
     }
 }
 
 function changeLineColor(routeid, color) {
-    routePolylines[routeid].setStyle({color: color})
+    routePolylines[routeid].setStyle({ color: color })
     routeMarkers[routeid].forEach(marker => {
-        marker.setStyle({color: color, fillColor: marker._radius == 4 ? color : "white"})
+        marker.setStyle({ color: color, fillColor: marker._radius == 4 ? color : "white" })
     })
 }
