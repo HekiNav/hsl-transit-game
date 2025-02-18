@@ -523,6 +523,7 @@ function startGame(data) {
         "suffering"
     ]
     const mode = modes[Number(window.getComputedStyle(document.querySelector('.e-selected'), ':before').getPropertyValue('content').split("-")[1].replace(")", ""))]
+    console.log(data, mode)
     const [stop1, stop2] = data[mode]
     console.log(stop1, stop2)
     hide()
