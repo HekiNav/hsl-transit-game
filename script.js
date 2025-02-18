@@ -547,8 +547,8 @@ function startGame(data) {
         searchRoutes(this.value)
     })
 
-    stop1Id = stop1.gtfsId
-    stop2Id = stop2.gtfsId
+    stop1Id = stop1.stop_id
+    stop2Id = stop2.stop_id
 }
 function reloadGameModes() {
     gameModes.forEach((mode, i) => {
